@@ -9,10 +9,12 @@
 
 import axios, { AxiosInstance } from 'axios';
 
-// Use Next.js API proxy instead of direct Directus URL for client-side requests
-const DIRECTUS_URL = typeof window !== 'undefined' 
-  ? '/api/directus' 
-  : process.env.DIRECTUS_URL || 'http://atadna-directus:8055';
+// Use Next.js API proxy for client-side requests to avoid CORS issues
+// Server-side uses localhost because Next.js runs outside Docker
+const DIRECTUS_URL =
+  typeof window !== 'undefined'
+    ? '/api/directus' // Browser: use Next.js API proxy
+    : process.env.DIRECTUS_URL || 'http://localhost:8055'; // Server: direct connection
 
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN;
 
@@ -112,7 +114,7 @@ class DirectusClient {
   }) {
     try {
       const filters: any = {};
-      
+
       if (params?.status) {
         filters.status = { _eq: params.status };
       }

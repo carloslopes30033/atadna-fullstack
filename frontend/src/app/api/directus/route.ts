@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const DIRECTUS_URL = process.env.DIRECTUS_URL || 'http://atadna-directus:8055';
+// Use localhost because Next.js runs outside Docker in Codespace
+const DIRECTUS_URL = process.env.DIRECTUS_URL || 'http://localhost:8055';
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN;
 
 export async function GET(request: NextRequest) {
