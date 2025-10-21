@@ -103,7 +103,7 @@ export default function Home() {
             <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
               <div className="text-4xl mb-2">📦</div>
               <div className="text-sm text-gray-600 mb-1">Directus CMS</div>
-              <div className="text-lg font-bold text-orange-600">⏳ قيد التشغيل</div>
+              <div className="text-lg font-bold text-green-600">✅ متصل</div>
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
               <div className="text-4xl mb-2">🚀</div>
