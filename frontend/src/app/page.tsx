@@ -15,9 +15,9 @@ export default function Home() {
               </div>
             </div>
             <nav className="hidden md:flex gap-6">
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition">الرئيسية</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition">المنتجات</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition">الموردين</a>
+              <a href="/" className="text-gray-700 hover:text-blue-600 transition">الرئيسية</a>
+              <a href="/products" className="text-gray-700 hover:text-blue-600 transition">المنتجات</a>
+              <a href="/categories" className="text-gray-700 hover:text-blue-600 transition">الفئات</a>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition">من نحن</a>
             </nav>
             <div className="flex gap-3">
@@ -48,12 +48,12 @@ export default function Home() {
             <span className="text-lg">B2B Wholesale Marketplace for Middle East</span>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl hover:shadow-2xl transition text-lg font-medium transform hover:scale-105">
+            <a href="/products" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl hover:shadow-2xl transition text-lg font-medium transform hover:scale-105 text-center">
               🛍️ تصفح المنتجات
-            </button>
-            <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-blue-600 hover:text-blue-600 transition text-lg font-medium">
-              🏢 انضم كمورد
-            </button>
+            </a>
+            <a href="/categories" className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-blue-600 hover:text-blue-600 transition text-lg font-medium text-center">
+              📂 تصفح حسب الفئة
+            </a>
           </div>
         </div>
       </section>
