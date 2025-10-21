@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: atadna-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: atadna_user
+      POSTGRES_PASSWORD: atadna_secure_password_2025
+      POSTGRES_DB: atadna_db
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - atadna-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atadna_user -d atadna_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: atadna-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass atadna_redis_password_2025
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - atadna-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Directus CMS
+  directus:
+    image: directus/directus:11.3
+    container_name: atadna-directus
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # General
+      KEY: 'atadna-directus-secret-key-2025-secure-random-string'
+      SECRET: 'atadna-directus-secret-2025-another-random-string'
+      
+      # Database
+      DB_CLIENT: 'pg'
+      DB_HOST: 'postgres'
+      DB_PORT: '5432'
+      DB_DATABASE: 'atadna_db'
+      DB_USER: 'atadna_user'
+      DB_PASSWORD: 'atadna_secure_password_2025'
+      
+      # Cache (Redis)
+      CACHE_ENABLED: 'true'
+      CACHE_STORE: 'redis'
+      REDIS: 'redis://:atadna_redis_password_2025@redis:6379'
+      
+      # Admin User
+      ADMIN_EMAIL: 'admin@atadna.com'
+      ADMIN_PASSWORD: 'Atadna@Admin2025'
+      
+      # Security
+      ACCESS_TOKEN_TTL: '15m'
+      REFRESH_TOKEN_TTL: '7d'
+      REFRESH_TOKEN_COOKIE_SECURE: 'false'
+      REFRESH_TOKEN_COOKIE_SAME_SITE: 'lax'
+      
+      # CORS
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'http://localhost:3000,http://localhost:8055'
+      
+      # File Storage
+      STORAGE_LOCATIONS: 'local'
+      STORAGE_LOCAL_ROOT: './uploads'
+      
+      # Email (SMTP)
+      EMAIL_FROM: 'noreply@atadna.com'
+      EMAIL_TRANSPORT: 'smtp'
+      EMAIL_SMTP_HOST: 'smtp.gmail.com'
+      EMAIL_SMTP_PORT: '587'
+      EMAIL_SMTP_USER: 'your-email@gmail.com'
+      EMAIL_SMTP_PASSWORD: 'your-app-password'
+      
+      # Extensions
+      EXTENSIONS_PATH: './extensions'
+      
+      # Public URL
+      PUBLIC_URL: 'http://localhost:8055'
+      
+      # Websockets
+      WEBSOCKETS_ENABLED: 'true'
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_extensions:/directus/extensions
+      - ./directus/config:/directus/config
+    ports:
+      - "8055:8055"
+    networks:
+      - atadna-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8055/server/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    container_name: atadna-frontend
+    restart: unless-stopped
+    depends_on:
+      - directus
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8055
+      NEXT_PUBLIC_DIRECTUS_URL: http://directus:8055
+      REDIS_URL: redis://:atadna_redis_password_2025@redis:6379
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    networks:
+      - atadna-network
+    command: npm run dev
+
+  # Next.js Backend API (Optional - if separate from frontend)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    container_name: atadna-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://atadna_user:atadna_secure_password_2025@postgres:5432/atadna_db
+      REDIS_URL: redis://:atadna_redis_password_2025@redis:6379
+      DIRECTUS_URL: http://directus:8055
+      JWT_SECRET: atadna-jwt-secret-key-2025
+      JWT_EXPIRES_IN: 7d
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "4000:4000"
+    networks:
+      - atadna-network
+    command: npm run dev
+
+networks:
+  atadna-network:
+    driver: bridge
+    name: atadna-network
+
+volumes:
+  postgres_data:
+    name: atadna-postgres-data
+  redis_data:
+    name: atadna-redis-data
+  directus_uploads:
+    name: atadna-directus-uploads
+  directus_extensions:
+    name: atadna-directus-extensions
