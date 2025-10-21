@@ -9,7 +9,11 @@
 
 import axios, { AxiosInstance } from 'axios';
 
-const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
+// Use Next.js API proxy instead of direct Directus URL for client-side requests
+const DIRECTUS_URL = typeof window !== 'undefined' 
+  ? '/api/directus' 
+  : process.env.DIRECTUS_URL || 'http://atadna-directus:8055';
+
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -126,8 +130,9 @@ class DirectusClient {
         ];
       }
 
-      const response = await this.client.get('/items/products', {
+      const response = await this.client.get('', {
         params: {
+          path: '/items/products',
           limit: params?.limit || 20,
           offset: params?.offset || 0,
           filter: JSON.stringify(filters),
@@ -144,7 +149,11 @@ class DirectusClient {
 
   async getProduct(id: string) {
     try {
-      const response = await this.client.get(`/items/products/${id}`);
+      const response = await this.client.get('', {
+        params: {
+          path: `/items/products/${id}`,
+        },
+      });
       return response.data.data as Product;
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -154,8 +163,9 @@ class DirectusClient {
 
   async getFeaturedProducts(limit: number = 8) {
     try {
-      const response = await this.client.get('/items/products', {
+      const response = await this.client.get('', {
         params: {
+          path: '/items/products',
           limit,
           filter: JSON.stringify({
             is_featured: { _eq: true },
@@ -176,8 +186,9 @@ class DirectusClient {
 
   async getCategories() {
     try {
-      const response = await this.client.get('/items/categories', {
+      const response = await this.client.get('', {
         params: {
+          path: '/items/categories',
           filter: JSON.stringify({ is_active: { _eq: true } }),
           sort: ['sort_order'],
         },
@@ -191,7 +202,11 @@ class DirectusClient {
 
   async getCategory(id: string) {
     try {
-      const response = await this.client.get(`/items/categories/${id}`);
+      const response = await this.client.get('', {
+        params: {
+          path: `/items/categories/${id}`,
+        },
+      });
       return response.data.data as Category;
     } catch (error) {
       console.error('Error fetching category:', error);
@@ -205,8 +220,9 @@ class DirectusClient {
 
   async getVendors() {
     try {
-      const response = await this.client.get('/items/vendors', {
+      const response = await this.client.get('', {
         params: {
+          path: '/items/vendors',
           filter: JSON.stringify({ is_verified: { _eq: true } }),
         },
       });
@@ -219,7 +235,11 @@ class DirectusClient {
 
   async getVendor(id: string) {
     try {
-      const response = await this.client.get(`/items/vendors/${id}`);
+      const response = await this.client.get('', {
+        params: {
+          path: `/items/vendors/${id}`,
+        },
+      });
       return response.data.data as Vendor;
     } catch (error) {
       console.error('Error fetching vendor:', error);
@@ -233,8 +253,9 @@ class DirectusClient {
 
   async getProductReviews(productId: string) {
     try {
-      const response = await this.client.get('/items/reviews', {
+      const response = await this.client.get('', {
         params: {
+          path: '/items/reviews',
           filter: JSON.stringify({
             product_id: { _eq: productId },
             is_approved: { _eq: true },

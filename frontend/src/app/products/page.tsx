@@ -25,13 +25,21 @@ export default function ProductsPage() {
 
   const loadProducts = async () => {
     setLoading(true);
-    const data = await directus.getProducts({
-      search: search || undefined,
-      status: 'active',
-      limit: 50,
-    });
-    setProducts(data);
-    setLoading(false);
+    try {
+      console.log('🔍 Loading products from Directus...');
+      const data = await directus.getProducts({
+        search: search || undefined,
+        status: 'active',
+        limit: 50,
+      });
+      console.log(`✅ Loaded ${data.length} products`);
+      setProducts(data);
+    } catch (error) {
+      console.error('❌ Error loading products:', error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddToCart = (product: Product) => {

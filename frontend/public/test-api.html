@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Directus API</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto;">
+    <h1>🧪 Test Directus API Connection</h1>
+    <div id="status">Testing...</div>
+    <div id="results" style="margin-top: 20px;"></div>
+
+    <script>
+        const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNiMDYyYjI4LWJkMWQtNDlhMi1iNzMxLWE4MGFjZmRkOWRkMSIsInJvbGUiOiIxNGU3YWEyNC1iMmUyLTRjYmYtYmI1Ny02Mjc4NjkxZGU5M2MiLCJhcHBfYWNjZXNzIjp0cnVlLCJhZG1pbl9hY2Nlc3MiOnRydWUsImlhdCI6MTc2MTA2MzY3NywiZXhwIjoxNzYxMDY0NTc3LCJpc3MiOiJkaXJlY3R1cyJ9.BayUZXt-pTml8u0tXP172m7Ug024zS4iWA0lETT30Ys';
+        const DIRECTUS_URL = 'http://localhost:8055';
+
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+
+            try {
+                console.log('Testing Directus API...');
+                statusDiv.innerHTML = '⏳ Loading...';
+                
+                const response = await axios.get(`${DIRECTUS_URL}/items/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Success!', response.data);
+                statusDiv.innerHTML = `✅ Success! Got ${response.data.data.length} products`;
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(response.data.data, null, 2)}</pre>`;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+                resultsDiv.innerHTML = `<pre style="color: red;">${JSON.stringify({
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status
+                }, null, 2)}</pre>`;
+            }
+        }
+
+        // Run test on page load
+        testAPI();
+    </script>
+</body>
+</html>
