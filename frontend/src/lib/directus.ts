@@ -10,6 +10,7 @@
 import axios, { AxiosInstance } from 'axios';
 
 const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
+const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -88,6 +89,7 @@ class DirectusClient {
       baseURL: DIRECTUS_URL,
       headers: {
         'Content-Type': 'application/json',
+        ...(DIRECTUS_TOKEN && { Authorization: `Bearer ${DIRECTUS_TOKEN}` }),
       },
     });
   }
