@@ -11,6 +11,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createClient } from 'redis';
 import { Pool } from 'pg';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +34,15 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiter for best-rated endpoints
+const bestRatedLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ───────────────────────────────────────────────────────────────────────────
 // 🗄️ Database Connection (PostgreSQL)
@@ -182,7 +192,7 @@ app.get('/api/products', async (req: Request, res: Response) => {
 });
 
 // Get best rated product
-app.get('/api/products/best', async (_req: Request, res: Response) => {
+app.get('/api/products/best', bestRatedLimiter, async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
       'SELECT * FROM products WHERE status = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
@@ -270,7 +280,7 @@ app.get('/api/vendors', async (req: Request, res: Response) => {
 });
 
 // Get best rated vendor
-app.get('/api/vendors/best', async (_req: Request, res: Response) => {
+app.get('/api/vendors/best', bestRatedLimiter, async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
       'SELECT * FROM vendors WHERE is_verified = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
