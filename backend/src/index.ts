@@ -185,7 +185,7 @@ app.get('/api/products', async (req: Request, res: Response) => {
 app.get('/api/products/best', async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM products WHERE status = $1 ORDER BY rating DESC LIMIT 1',
+      'SELECT * FROM products WHERE status = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
       ['active']
     );
 
@@ -273,7 +273,7 @@ app.get('/api/vendors', async (req: Request, res: Response) => {
 app.get('/api/vendors/best', async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM vendors WHERE is_verified = $1 ORDER BY rating DESC LIMIT 1',
+      'SELECT * FROM vendors WHERE is_verified = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
       [true]
     );
 
