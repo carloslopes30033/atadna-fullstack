@@ -118,7 +118,9 @@ app.get('/api', (req: Request, res: Response) => {
     endpoints: {
       health: '/health',
       products: '/api/products',
+      bestProduct: '/api/products/best',
       vendors: '/api/vendors',
+      bestVendor: '/api/vendors/best',
       orders: '/api/orders',
       users: '/api/users',
     },
@@ -179,6 +181,34 @@ app.get('/api/products', async (req: Request, res: Response) => {
   }
 });
 
+// Get best rated product
+app.get('/api/products/best', async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM products WHERE status = $1 ORDER BY rating DESC LIMIT 1',
+      ['active']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No products found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error fetching best product:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch best product',
+    });
+  }
+});
+
 // Get single product
 app.get('/api/products/:id', async (req: Request, res: Response) => {
   try {
@@ -235,6 +265,34 @@ app.get('/api/vendors', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch vendors',
+    });
+  }
+});
+
+// Get best rated vendor
+app.get('/api/vendors/best', async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM vendors WHERE is_verified = $1 ORDER BY rating DESC LIMIT 1',
+      [true]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No vendors found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error fetching best vendor:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch best vendor',
     });
   }
 });
