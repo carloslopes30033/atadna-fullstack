@@ -11,6 +11,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createClient } from 'redis';
 import { Pool } from 'pg';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +34,15 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiter for best-rated endpoints
+const bestRatedLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ───────────────────────────────────────────────────────────────────────────
 // 🗄️ Database Connection (PostgreSQL)
@@ -118,7 +128,9 @@ app.get('/api', (req: Request, res: Response) => {
     endpoints: {
       health: '/health',
       products: '/api/products',
+      bestProduct: '/api/products/best',
       vendors: '/api/vendors',
+      bestVendor: '/api/vendors/best',
       orders: '/api/orders',
       users: '/api/users',
     },
@@ -179,6 +191,34 @@ app.get('/api/products', async (req: Request, res: Response) => {
   }
 });
 
+// Get best rated product
+app.get('/api/products/best', bestRatedLimiter, async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM products WHERE status = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
+      ['active']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No products found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error fetching best product:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch best product',
+    });
+  }
+});
+
 // Get single product
 app.get('/api/products/:id', async (req: Request, res: Response) => {
   try {
@@ -235,6 +275,34 @@ app.get('/api/vendors', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch vendors',
+    });
+  }
+});
+
+// Get best rated vendor
+app.get('/api/vendors/best', bestRatedLimiter, async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM vendors WHERE is_verified = $1 AND rating IS NOT NULL ORDER BY rating DESC LIMIT 1',
+      [true]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No vendors found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error fetching best vendor:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch best vendor',
     });
   }
 });

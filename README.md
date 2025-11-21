@@ -273,6 +273,7 @@ GET /health
 ### Products
 ```http
 GET    /api/products              # List all products
+GET    /api/products/best         # Get best rated product
 GET    /api/products/:id          # Get single product
 POST   /api/products              # Create product (vendor)
 PUT    /api/products/:id          # Update product (vendor)
@@ -282,6 +283,7 @@ DELETE /api/products/:id          # Delete product (vendor)
 ### Vendors
 ```http
 GET    /api/vendors               # List all vendors
+GET    /api/vendors/best          # Get best rated vendor
 GET    /api/vendors/:id           # Get single vendor
 POST   /api/vendors/register      # Register as vendor
 PUT    /api/vendors/:id           # Update vendor profile
